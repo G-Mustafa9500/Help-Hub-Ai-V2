@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — Create Request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">CREATE REQUEST</p>
+      <h1 style="font-size:clamp(22px,4vw,36px);font-weight:900;color:#fff;line-height:1.2;">Turn a rough problem into a clear help request.</h1>
+    </div>
+  </div>
+  <div class="create-layout">
+    <div class="glass p-6">
+      <div class="space-5">
+        <div><label class="field-label">Title</label><input type="text" class="field" id="createTitle" placeholder="Need review on my JavaScript quiz app" oninput="updateAI()"/></div>
+        <div><label class="field-label">Description</label><textarea class="field" id="createDesc" rows="6" placeholder="Explain the challenge and what kind of help would be useful." oninput="updateAI()"></textarea></div>
+        <div class="grid-2">
+          <div><label class="field-label">Tags</label><input type="text" class="field" id="createTags" placeholder="JavaScript, Debugging"/></div>
+          <div><label class="field-label">Category</label><select class="field" id="createCat"></select></div>
+        </div>
+        <div style="max-width:50%;"><label class="field-label">Urgency</label><select class="field" id="createUrg"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+        <div class="flex gap-3">
+          <button class="btn-secondary" onclick="applyAI()">Apply AI suggestions</button>
+          <button class="btn-primary" id="publishBtn" onclick="handlePublish()" disabled>Publish request</button>
+        </div>
+      </div>
+    </div>
+    <div class="glass p-6 ai-sticky">
+      <p class="label mb-3">AI ASSISTANT</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Smart request guidance</h3>
+      <div>
+        <div class="flex justify-between" style="padding:12px 0;border-bottom:1px solid #f0ebe5;"><span class="text-14" style="color:var(--text-500);">Suggested category</span><span class="text-14 font-bold" id="aiCat">—</span></div>
+        <div class="flex justify-between" style="padding:12px 0;border-bottom:1px solid #f0ebe5;"><span class="text-14" style="color:var(--text-500);">Detected urgency</span><span class="text-14 font-bold" id="aiUrg">—</span></div>
+        <div class="flex justify-between" style="padding:12px 0;border-bottom:1px solid #f0ebe5;"><span class="text-14" style="color:var(--text-500);">Tag hint</span><span class="text-14 font-bold" id="aiTagHint">Add more specific tags</span></div>
+        <div style="padding:12px 0;"><span class="text-14" style="color:var(--text-500);">Rewrite suggestion</span><p class="text-14 font-bold mt-1" id="aiRewrite">Start describing the challenge to generate a stronger version.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName='create';
+if(!requireAuth()){}else{
+renderNavbar('create');
+document.getElementById('createCat').innerHTML=CATEGORIES.filter(c=>c!=='All').map(c=>`<option>${c}</option>`).join('');
+document.getElementById('createTitle').value='';
+document.getElementById('createDesc').value='';
+document.getElementById('createTags').value='';
+document.getElementById('publishBtn').disabled=true;
+updateAI();
+}
+</script>
+</body>
+</html>
