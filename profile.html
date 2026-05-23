@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">PROFILE</p>
+      <h1 id="profileHeroName" style="font-size:clamp(24px,4vw,38px);font-weight:900;color:#fff;"></h1>
+      <p id="profileHeroSub" style="font-size:15px;color:#d6d3d1;margin-top:6px;"></p>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="glass p-6">
+      <p class="label mb-3">SKILLS AND REPUTATION</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Skills and reputation</h3>
+      <div id="profilePublic"></div>
+    </div>
+    <div class="glass p-6">
+      <p class="label mb-3">EDIT PROFILE</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Update your identity</h3>
+      <div class="space-5">
+        <div class="grid-2">
+          <div><label class="field-label">Name</label><input type="text" class="field" id="editName"/></div>
+          <div><label class="field-label">Location</label><input type="text" class="field" id="editLoc"/></div>
+        </div>
+        <div><label class="field-label">Skills</label><input type="text" class="field" id="editSkills"/></div>
+        <div><label class="field-label">Interests</label><input type="text" class="field" id="editInterests"/></div>
+        <button class="btn-primary w-full" onclick="saveProfile()">Save profile</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName='profile';
+if(!requireAuth()){}else{
+renderNavbar('profile');
+
+function renderPage(){
+  const user=getCurrentUser();if(!user)return;
+  document.getElementById('profileHeroName').textContent=user.name;
+  document.getElementById('profileHeroSub').textContent=`${user.role} • ${user.location}`;
+  document.getElementById('profilePublic').innerHTML=`
+    <div>
+      <div class="flex justify-between" style="padding:12px 0;border-bottom:1px solid #f0ebe5;">
+        <span class="text-14" style="color:var(--text-500);">Trust score</span>
+        <span class="text-14 font-bold">${user.trustScore}%</span>
+      </div>
+      <div class="flex justify-between" style="padding:12px 0;border-bottom:1px solid #f0ebe5;">
+        <span class="text-14" style="color:var(--text-500);">Contributions</span>
+        <span class="text-14 font-bold">${user.contributions}</span>
+      </div>
+      <div style="padding-top:12px;margin-top:4px;">
+        <p class="text-14 font-bold mb-2">Skills</p>
+        <div class="flex flex-wrap gap-2">${user.skills.map(s=>`<span class="skill-pill">${s}</span>`).join('')}</div>
+      </div>
+      <div style="padding-top:12px;margin-top:8px;">
+        <p class="text-14 font-bold mb-2">Badges</p>
+        <div class="flex flex-wrap gap-2">${user.badges.map(b=>`<span class="badge ${BADGE_COLORS[b]||'badge-stone'}">${b}</span>`).join('')}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('editName').value=user.name;
+  document.getElementById('editLoc').value=user.location;
+  document.getElementById('editSkills').value=user.skills.join(', ');
+  document.getElementById('editInterests').value=user.interests.join(', ');
+}
+renderPage();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+<style>
+.lb-tabs { display:flex; gap:8px; margin-bottom:1.5rem; }
+.lb-tab { padding:8px 18px; border-radius:99px; border:1.5px solid #e7e5e4; background:none; font-family:inherit; font-size:13px; font-weight:700; color:var(--text-500); cursor:pointer; transition:all .2s; }
+.lb-tab.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+.lb-tab:hover:not(.active) { border-color:#d6d3d1; color:var(--text-700); }
+
+.rank-row {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px; border-radius:14px;
+  border:1.5px solid #e7e5e4; background:#fff;
+  transition:border-color .2s, box-shadow .2s;
+}
+.rank-row:hover { border-color:#d6d3d1; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+.rank-row.is-me { border-color:var(--primary); background:#f0fdfa; }
+
+.rank-medal { width:32px; text-align:center; font-size:20px; flex-shrink:0; }
+.rank-info { flex:1; min-width:0; }
+.rank-name { font-size:14px; font-weight:800; color:var(--text-700); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-skills { font-size:12px; color:var(--text-400); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-right { text-align:right; flex-shrink:0; }
+.rank-pct { font-size:15px; font-weight:900; color:var(--primary); }
+.rank-contribs { font-size:11px; color:var(--text-400); margin-top:2px; }
+
+.podium-wrap {
+  display:flex; align-items:flex-end; justify-content:center;
+  gap:12px; padding:2rem 1rem 0;
+}
+.podium-item { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.podium-avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; }
+.podium-1 .podium-avatar { width:72px; height:72px; font-size:24px; box-shadow:0 0 0 4px gold; }
+.podium-2 .podium-avatar { width:58px; height:58px; font-size:18px; box-shadow:0 0 0 3px silver; }
+.podium-3 .podium-avatar { width:52px; height:52px; font-size:16px; box-shadow:0 0 0 3px #cd7f32; }
+.podium-name { font-size:13px; font-weight:800; color:var(--text-700); text-align:center; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.podium-score { font-size:12px; color:var(--text-400); }
+.podium-block { border-radius:12px 12px 0 0; width:80px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+.podium-1 .podium-block { height:80px; background:linear-gradient(135deg,#ffd700,#f4b942); }
+.podium-2 .podium-block { height:60px; background:linear-gradient(135deg,#c0c0c0,#a8a8a8); }
+.podium-3 .podium-block { height:44px; background:linear-gradient(135deg,#cd7f32,#b8692e); }
+
+.badge-card {
+  padding:1.1rem 1.25rem; border-radius:14px;
+  background:#f9f8f7; border:1.5px solid #e7e5e4;
+}
+.badge-card .trust-bar-wrap { height:6px; background:#e7e5e4; border-radius:99px; overflow:hidden; margin-bottom:10px; }
+.badge-card .trust-bar-fill { height:100%; background:linear-gradient(90deg,#2a9d8f,#3bb5a7); border-radius:99px; transition:width .6s; }
+
+.lb-empty { text-align:center; padding:3rem 1rem; color:var(--text-400); }
+.lb-empty h3 { font-size:18px; font-weight:800; color:var(--text-600); margin-bottom:8px; }
+.lb-empty p { font-size:14px; }
+
+.lb-loader { text-align:center; padding:2rem; color:var(--text-400); font-size:14px; }
+
+.lb-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+.lb-stat { background:#f9f8f7; border-radius:12px; padding:1rem; text-align:center; border:1px solid #e7e5e4; }
+.lb-stat-num { font-size:24px; font-weight:900; color:var(--primary); }
+.lb-stat-label { font-size:12px; color:var(--text-400); margin-top:4px; font-weight:600; }
+
+@media(max-width:600px) {
+  .podium-wrap { gap:6px; }
+  .lb-stats-row { grid-template-columns:repeat(3,1fr); gap:8px; }
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+
+  <!-- Hero -->
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">LEADERBOARD</p>
+      <h1 style="font-size:clamp(22px,4vw,36px);font-weight:900;color:#fff;line-height:1.2;">Recognizing the people who keep this community moving.</h1>
+      <p style="font-size:14px;color:#d6d3d1;margin-top:8px;">Rankings update in real-time based on contributions and trust score.</p>
+    </div>
+  </div>
+
+  <!-- Community Stats -->
+  <div class="lb-stats-row" id="lbStats">
+    <div class="lb-stat"><div class="lb-stat-num" id="statMembers">—</div><div class="lb-stat-label">Members</div></div>
+    <div class="lb-stat"><div class="lb-stat-num" id="statHelpers">—</div><div class="lb-stat-label">Active Helpers</div></div>
+    <div class="lb-stat"><div class="lb-stat-num" id="statRequests">—</div><div class="lb-stat-label">Live Requests</div></div>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- Rankings Panel -->
+    <div class="glass p-6">
+      <p class="label mb-2">RANKINGS</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1rem;">Top Community Helpers</h3>
+
+      <!-- Tabs -->
+      <div class="lb-tabs">
+        <button class="lb-tab active" onclick="setTab('contributions')">By Contributions</button>
+        <button class="lb-tab" onclick="setTab('trust')">By Trust Score</button>
+      </div>
+
+      <!-- Podium (top 3) -->
+      <div id="podium" style="margin-bottom:1.5rem;"></div>
+
+      <!-- Full list -->
+      <div id="lbLoader" class="lb-loader">Loading rankings...</div>
+      <div id="lbRankings" class="space-3" style="display:none;"></div>
+
+    </div>
+
+    <!-- Badge & Trust Panel -->
+    <div class="glass p-6">
+      <p class="label mb-3">BADGES & TRUST</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Member achievements</h3>
+      <div id="lbLoader2" class="lb-loader">Loading...</div>
+      <div id="lbBadges" class="space-3" style="display:none;"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName = 'leaderboard';
+renderNavbar('leaderboard');
+
+let allUsers = [];
+let allRequests = [];
+let currentTab = 'contributions';
+
+const MEDAL = ['🥇','🥈','🥉'];
+const BG_COLORS = ['#2a9d8f','#e76f51','#f4a261','#3b82f6','#8b5cf6'];
+
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.lb-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', (i === 0 && tab === 'contributions') || (i === 1 && tab === 'trust'));
+  });
+  renderRankings();
+}
+
+function getSorted() {
+  const users = [...allUsers].filter(u => u.name);
+  if (currentTab === 'contributions') {
+    return users.sort((a, b) => (b.contributions || 0) - (a.contributions || 0));
+  } else {
+    return users.sort((a, b) => (b.trustScore || 0) - (a.trustScore || 0));
+  }
+}
+
+function renderPodium(sorted) {
+  const top3 = sorted.slice(0, 3);
+  if (top3.length < 1) { document.getElementById('podium').innerHTML = ''; return; }
+
+  // Reorder for podium display: 2nd, 1st, 3rd
+  const order = top3.length >= 3 ? [top3[1], top3[0], top3[2]]
+               : top3.length === 2 ? [top3[1], top3[0]]
+               : [top3[0]];
+  const positions = top3.length >= 3 ? [2, 1, 3] : top3.length === 2 ? [2, 1] : [1];
+  const blockLabels = ['🥈','🥇','🥉'];
+
+  document.getElementById('podium').innerHTML = `
+    <div class="podium-wrap">
+      ${order.map((u, i) => {
+        const pos = positions[i];
+        const cls = `podium-${pos}`;
+        const bg = BG_COLORS[allUsers.indexOf(u) % BG_COLORS.length];
+        const score = currentTab === 'contributions'
+          ? `${u.contributions || 0} contribs`
+          : `${u.trustScore || 0}% trust`;
+        return `<div class="podium-item ${cls}">
+          <div class="podium-avatar ${cls.replace('podium-','')==='1'?'':''}  " style="background:${bg};">${getInitials(u.name)}</div>
+          <div class="podium-name">${u.name.split(' ')[0]}</div>
+          <div class="podium-score">${score}</div>
+          <div class="podium-block">${blockLabels[i]}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderRankings() {
+  const sorted = getSorted();
+  renderPodium(sorted);
+
+  if (!sorted.length) {
+    document.getElementById('lbRankings').innerHTML = `
+      <div class="lb-empty">
+        <h3>No members yet</h3>
+        <p>Be the first to join and top the leaderboard!</p>
+        <a href="login.html" class="btn-primary" style="display:inline-block;margin-top:1rem;">Join now</a>
+      </div>`;
+    document.getElementById('lbRankings').style.display = '';
+    return;
+  }
+
+  document.getElementById('lbRankings').innerHTML = sorted.map((u, i) => {
+    const bg = BG_COLORS[allUsers.indexOf(u) % BG_COLORS.length];
+    const isMe = u.id === currentUserId;
+    const score = currentTab === 'contributions' ? u.contributions || 0 : u.trustScore || 0;
+    const scoreLabel = currentTab === 'contributions' ? 'contributions' : '% trust';
+    const medal = i < 3 ? MEDAL[i] : `#${i+1}`;
+    const skills = (u.skills || []).slice(0,3).join(', ') || 'No skills listed';
+    return `<div class="rank-row${isMe ? ' is-me' : ''}">
+      <div class="rank-medal">${medal}</div>
+      <div class="avatar" style="background:${bg};flex-shrink:0;">${getInitials(u.name)}</div>
+      <div class="rank-info">
+        <p class="rank-name">${u.name}${isMe ? ' <span style="font-size:11px;color:var(--primary);">(you)</span>' : ''}</p>
+        <p class="rank-skills">${skills}</p>
+      </div>
+      <div class="rank-right">
+        <p class="rank-pct">${score}</p>
+        <p class="rank-contribs">${scoreLabel}</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lbRankings').style.display = '';
+}
+
+function renderBadges() {
+  const sorted = [...allUsers].filter(u => u.name).sort((a, b) => (b.trustScore || 0) - (a.trustScore || 0));
+
+  if (!sorted.length) {
+    document.getElementById('lbBadges').innerHTML = `<div class="lb-empty"><p>No members yet.</p></div>`;
+    document.getElementById('lbBadges').style.display = '';
+    return;
+  }
+
+  document.getElementById('lbBadges').innerHTML = sorted.map(u => {
+    const trust = u.trustScore || 10;
+    const badges = u.badges || [];
+    const bg = BG_COLORS[allUsers.indexOf(u) % BG_COLORS.length];
+    const badgesHtml = badges.length
+      ? badges.map(b => `<span class="badge ${BADGE_COLORS[b] || 'badge-stone'}">${b}</span>`).join('')
+      : '<span style="font-size:12px;color:var(--text-400);">No badges yet</span>';
+    return `<div class="badge-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div class="avatar" style="background:${bg};width:36px;height:36px;font-size:13px;flex-shrink:0;">${getInitials(u.name)}</div>
+        <div>
+          <p style="font-size:14px;font-weight:800;color:var(--text-700);">${u.name}</p>
+          <p style="font-size:12px;color:var(--text-400);">${u.contributions || 0} contributions</p>
+        </div>
+        <span style="margin-left:auto;font-size:13px;font-weight:900;color:var(--primary);">${trust}%</span>
+      </div>
+      <div class="trust-bar-wrap"><div class="trust-bar-fill" style="width:${Math.min(trust,100)}%;"></div></div>
+      <div class="flex flex-wrap gap-2" style="margin-top:8px;">${badgesHtml}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lbBadges').style.display = '';
+}
+
+async function renderPage() {
+  // Load users from localStorage (they register and login locally)
+  allUsers = window.DB_USERS || [];
+
+  // Load requests from Firestore for stats
+  allRequests = await fsGetAll('requests');
+
+  // Stats
+  const helpers = allUsers.filter(u => u.role === 'can-help' || u.role === 'both');
+  document.getElementById('statMembers').textContent = allUsers.length;
+  document.getElementById('statHelpers').textContent = helpers.length;
+  document.getElementById('statRequests').textContent = allRequests.filter(r => r.status === 'open').length;
+
+  // Compute contributions from Firestore replies
+  // Get reply counts per user and update contribution scores
+  try {
+    const db = await getDB();
+    const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const snap = await getDocs(collection(db, 'replies'));
+    const contribMap = {};
+    snap.docs.forEach(d => {
+      const uid = d.data().userId;
+      if (uid) contribMap[uid] = (contribMap[uid] || 0) + 1;
+    });
+    // Update user contributions from live Firestore data
+    allUsers.forEach(u => {
+      if (contribMap[u.id] !== undefined) {
+        u.contributions = contribMap[u.id];
+        // Bump trust score based on contributions
+        u.trustScore = Math.min(100, 10 + (u.contributions * 8));
+      }
+    });
+    lsSetJSON('hh_db_users', allUsers);
+  } catch(e) { console.warn('Could not load reply counts:', e); }
+
+  // Hide loaders
+  document.getElementById('lbLoader').style.display = 'none';
+  document.getElementById('lbLoader2').style.display = 'none';
+
+  renderRankings();
+  renderBadges();
+}
+
+renderPage();
+</script>
+</body>
+</html>

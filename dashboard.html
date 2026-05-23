@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">DASHBOARD</p>
+      <h1 id="dashWelcome" style="font-size:clamp(24px,4vw,38px);font-weight:900;color:#fff;"></h1>
+      <p style="font-size:15px;color:#d6d3d1;margin-top:8px;">Your community overview with requests, stats, and AI insights.</p>
+    </div>
+  </div>
+  <div class="grid-4" id="dashStats"></div>
+  <div class="grid-2">
+    <div class="glass p-6">
+      <p class="label mb-3">QUICK ACTIONS</p>
+      <h3 style="font-size:20px;font-weight:800;margin-bottom:1.25rem;">Jump into action</h3>
+      <div class="space-3">
+        <a class="qa-row" href="create.html"><div><p class="qa-title">Post a new request</p><p class="qa-sub">Describe your problem and get matched</p></div><span class="qa-arrow">→</span></a>
+        <a class="qa-row" href="explore.html"><div><p class="qa-title">Browse the community feed</p><p class="qa-sub">Find requests that match your skills</p></div><span class="qa-arrow">→</span></a>
+      </div>
+    </div>
+    <div class="glass p-6">
+      <p class="label mb-3">AI INSIGHTS</p>
+      <h3 style="font-size:20px;font-weight:800;margin-bottom:1.25rem;">What the AI is noticing</h3>
+      <div class="space-3">
+        <div class="insight-teal" style="padding:1rem;border-radius:12px;"><p style="font-size:14px;font-weight:700;color:var(--text-700);">Trending: Web Development</p><p style="font-size:13px;color:var(--text-500);margin-top:4px;">Most active support area this week based on community requests.</p></div>
+        <div class="insight-amber" style="padding:1rem;border-radius:12px;"><p style="font-size:14px;font-weight:700;color:var(--text-700);">High urgency spike detected</p><p style="font-size:13px;color:var(--text-500);margin-top:4px;">3 requests flagged high priority by the urgency detector.</p></div>
+        <div class="insight-blue" style="padding:1rem;border-radius:12px;"><p style="font-size:14px;font-weight:700;color:var(--text-700);">Mentor availability</p><p style="font-size:13px;color:var(--text-500);margin-top:4px;">2 trusted helpers are currently active and responding fast.</p></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 style="font-size:20px;font-weight:800;">Recent community requests</h3>
+      <a class="btn-secondary" style="font-size:13px;padding:8px 16px;" href="explore.html">View all →</a>
+    </div>
+    <div class="grid-3" id="dashRecentCards"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName='dashboard';
+if(!requireAuth()){}else{
+renderNavbar('dashboard');
+function renderPage(){
+  const user=getCurrentUser();if(!user)return;
+  const reqs=getAllRequests();
+  document.getElementById('dashWelcome').textContent=`Welcome back, ${user.name}.`;
+  const myReqs=reqs.filter(r=>r.createdBy===currentUserId);
+  const helpingOn=reqs.filter(r=>r.helpers.includes(currentUserId));
+  document.getElementById('dashStats').innerHTML=[
+    statCard('MY REQUESTS',myReqs.length,'Requests you posted'),
+    statCard('HELPING ON',helpingOn.length,'Requests you offered to help'),
+    statCard('URGENT',reqs.filter(r=>r.urgency==='high').length,'High priority requests'),
+    statCard('COMMUNITY SOLVED',reqs.filter(r=>r.status==='solved').length,'Problems resolved')
+  ].join('');
+  document.getElementById('dashRecentCards').innerHTML=reqs.slice(0,3).map(feedCard).join('');
+}
+renderPage();
+}
+</script>
+</body>
+</html>
