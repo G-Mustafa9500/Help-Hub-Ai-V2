@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — Messages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">MESSAGING</p>
+      <h1 style="font-size:clamp(22px,4vw,36px);font-weight:900;color:#fff;line-height:1.2;">Keep support moving through direct communication.</h1>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="glass p-6">
+      <p class="label mb-3">CONVERSATION STREAM</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Recent messages</h3>
+      <div class="space-4" id="msgStream"></div>
+    </div>
+    <div class="glass p-6">
+      <p class="label mb-3">SEND MESSAGE</p>
+      <h3 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Start a conversation</h3>
+      <div class="space-5">
+        <div><label class="field-label">To</label><select class="field" id="msgTo"></select></div>
+        <div><label class="field-label">Message</label><textarea class="field" id="msgBody" rows="5" placeholder="Share support details..." oninput="toggleSendBtn()"></textarea></div>
+        <button class="btn-primary w-full" id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName='messages';
+if(!requireAuth()){}else{
+renderNavbar('messages');
+document.getElementById('msgTo').innerHTML=DB_USERS.filter(u=>u.id!==currentUserId).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+renderMsgStream();
+}
+</script>
+</body>
+</html>

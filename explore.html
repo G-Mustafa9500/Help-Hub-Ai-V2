@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — Explore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">EXPLORE / FEED</p>
+      <h1 style="font-size:clamp(22px,4vw,36px);font-weight:900;color:#fff;line-height:1.2;">Browse help requests with filterable community context.</h1>
+    </div>
+  </div>
+  <div class="explore-layout">
+    <div class="glass p-6 filter-sticky">
+      <p class="label mb-2">FILTERS</p>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:1.5rem;">Refine the feed</h2>
+      <div class="space-5">
+        <div><label class="field-label">Category</label><select class="field" id="filterCat" onchange="filterRequests()"></select></div>
+        <div><label class="field-label">Urgency</label><select class="field" id="filterUrg" onchange="filterRequests()"><option>All urgency levels</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+        <div><label class="field-label">Skill</label><select class="field" id="filterSkill" onchange="filterRequests()"><option value="All">All skills</option><option>Web Development</option><option>Graphic design</option><option>Digital Marketing</option><option>Agentic AI</option></select></div>
+        <div><label class="field-label">Location</label><input class="field" id="filterLoc" placeholder="Location" type="text" oninput="filterRequests()"/></div>
+      </div>
+    </div>
+    <div id="exploreCards" class="space-4"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName='explore';
+renderNavbar('explore');
+
+function filterRequests(){
+  const cat=document.getElementById('filterCat').value;
+  const urg=document.getElementById('filterUrg').value;
+  const loc=document.getElementById('filterLoc').value.trim().toLowerCase();
+  const reqs=getAllRequests().filter(r=>{
+    const matchCat=cat==='All'||r.category===cat;
+    const matchUrg=urg==='All urgency levels'||r.urgency.toLowerCase()===urg.toLowerCase();
+    const matchLoc=!loc||r.location.toLowerCase().includes(loc);
+    return matchCat&&matchUrg&&matchLoc;
+  });
+  const container=document.getElementById('exploreCards');
+  if(reqs.length>0){container.innerHTML=reqs.map(feedCard).join('')}
+  else{container.innerHTML='<div class="glass empty-state"><h3>No requests found</h3><p>Try adjusting your filters.</p></div>'}
+}
+
+function renderPage(){
+  document.getElementById('filterCat').innerHTML=CATEGORIES.map(c=>`<option value="${c}">${c==='All'?'All categories':c}</option>`).join('');
+  filterRequests();
+}
+renderPage();
+</script>
+</body>
+</html>

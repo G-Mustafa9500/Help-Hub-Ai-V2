@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HelpHub AI — AI Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header id="navbar">
+  <div class="container nav-inner">
+    <a class="nav-logo" href="index.html"><div class="logo-icon">H</div><span class="logo-text">HelpHub AI</span></a>
+    <nav class="nav-links" id="navLinks"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="container page-wrap space-y">
+  <div class="hero-grad">
+    <div class="hero-content">
+      <p class="label" style="color:#a8a29e;margin-bottom:8px;">AI CENTER</p>
+      <h1 style="font-size:clamp(22px,4vw,36px);font-weight:900;color:#fff;line-height:1.2;">See what the platform intelligence is noticing.</h1>
+    </div>
+  </div>
+  <div class="grid-3" id="aiStats"></div>
+  <div class="glass p-6">
+    <p class="label mb-3">AI RECOMMENDATIONS</p>
+    <h3 style="font-size:24px;font-weight:800;margin-bottom:1.5rem;">Requests needing attention</h3>
+    <div class="space-4" id="aiRecoCards"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+currentPageName='ai-center';
+renderNavbar('ai-center');
+
+function renderPage(){
+  const reqs=getAllRequests();
+  const highUrg=reqs.filter(r=>r.urgency==='high').length;
+  const mentors=DB_USERS.filter(u=>u.role==='can-help'||u.role==='both').length;
+  const catCount={};reqs.forEach(r=>{catCount[r.category]=(catCount[r.category]||0)+1});
+  const topCat=Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('aiStats').innerHTML=[
+    `<div class="glass p-6"><p class="label mb-2">TREND PULSE</p><p class="stat-num">${topCat?topCat[0]:'—'}</p><p style="font-size:13px;color:var(--text-400);margin-top:6px;">Most common support area</p></div>`,
+    `<div class="glass p-6"><p class="label mb-2">URGENCY WATCH</p><p class="stat-num">${highUrg}</p><p style="font-size:13px;color:var(--text-400);margin-top:6px;">High priority requests flagged</p></div>`,
+    `<div class="glass p-6"><p class="label mb-2">MENTOR POOL</p><p class="stat-num">${mentors}</p><p style="font-size:13px;color:var(--text-400);margin-top:6px;">Experienced helpers available</p></div>`
+  ].join('');
+
+  document.getElementById('aiRecoCards').innerHTML=reqs.map(r=>{
+    const catClass=CATEGORY_BADGE[r.category]||'badge-stone';
+    const urgClass=URGENCY_BADGE[r.urgency]||'badge-stone';
+    return`<div class="ai-row">
+      <h4>${r.title}</h4>
+      <p>${r.category} request with ${r.urgency} urgency.</p>
+      <div class="flex gap-2"><span class="badge ${catClass}">${r.category}</span><span class="badge ${urgClass}">${r.urgency}</span></div>
+    </div>`;
+  }).join('');
+}
+renderPage();
+</script>
+</body>
+</html>
