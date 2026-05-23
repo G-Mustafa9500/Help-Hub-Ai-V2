@@ -212,11 +212,11 @@ function renderRankings() {
     const scoreLabel = currentTab === 'contributions' ? 'contributions' : '% trust';
     const medal = i < 3 ? MEDAL[i] : `#${i+1}`;
     const skills = (u.skills || []).slice(0,3).join(', ') || 'No skills listed';
-    return `<div class="rank-row${isMe ? ' is-me' : ''}">
+    return `<div class="rank-row${isMe ? ' is-me' : ''}" style="cursor:pointer;" onclick="openUserProfile('${u.id}')">
       <div class="rank-medal">${medal}</div>
       <div class="avatar" style="background:${bg};flex-shrink:0;">${getInitials(u.name)}</div>
       <div class="rank-info">
-        <p class="rank-name">${u.name}${isMe ? ' <span style="font-size:11px;color:var(--primary);">(you)</span>' : ''}</p>
+        <p class="rank-name user-clickable" style="color:var(--teal-700);">${u.name}${isMe ? ' <span style="font-size:11px;color:var(--primary);">(you)</span>' : ''}</p>
         <p class="rank-skills">${skills}</p>
       </div>
       <div class="rank-right">
@@ -245,11 +245,11 @@ function renderBadges() {
     const badgesHtml = badges.length
       ? badges.map(b => `<span class="badge ${BADGE_COLORS[b] || 'badge-stone'}">${b}</span>`).join('')
       : '<span style="font-size:12px;color:var(--text-400);">No badges yet</span>';
-    return `<div class="badge-card">
+    return `<div class="badge-card" style="cursor:pointer;" onclick="openUserProfile('${u.id}')">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
         <div class="avatar" style="background:${bg};width:36px;height:36px;font-size:13px;flex-shrink:0;">${getInitials(u.name)}</div>
         <div>
-          <p style="font-size:14px;font-weight:800;color:var(--text-700);">${u.name}</p>
+          <p style="font-size:14px;font-weight:800;color:var(--teal-700);" class="user-clickable">${u.name}</p>
           <p style="font-size:12px;color:var(--text-400);">${u.contributions || 0} contributions</p>
         </div>
         <span style="margin-left:auto;font-size:13px;font-weight:900;color:var(--primary);">${trust}%</span>

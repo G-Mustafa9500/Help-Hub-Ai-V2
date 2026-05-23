@@ -196,11 +196,12 @@ function renderModalContent(req) {
       <p style="font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-400);margin-bottom:12px;">POST A PUBLIC SOLUTION</p>
       <textarea id="replyText" class="field" rows="4" placeholder="Write your solution or advice here... Everyone can see this reply." style="margin-bottom:10px;resize:vertical;"></textarea>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <label style="font-size:13px;color:var(--text-500);cursor:pointer;display:flex;align-items:center;gap:6px;">
-          <input type="file" id="replyImage" accept="image/*" style="display:none;" onchange="previewReplyImage(this)"/>
-          <span onclick="document.getElementById('replyImage').click()" style="padding:6px 12px;border:1.5px dashed #d6d3d1;border-radius:8px;font-size:12px;font-weight:600;color:var(--text-500);cursor:pointer;">📎 Attach Image</span>
-        </label>
-        <span id="replyImageName" style="font-size:12px;color:var(--text-400);"></span>
+        <input type="file" id="replyImage" accept="image/*" style="display:none;" onchange="previewReplyImage(this)"/>
+        <div class="code-upload-area" id="codeUploadArea" onclick="document.getElementById('replyImage').click()">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Attach Code Screenshot</div>
+          <div class="upload-hint">Click to upload or drag an image of your error/code</div>
+        </div>
       </div>
       <div id="replyImagePreview" style="margin-bottom:10px;"></div>
       <div style="display:flex;gap:10px;">
@@ -268,12 +269,19 @@ async function loadReplies(requestId) {
 
 function previewReplyImage(input) {
   const file = input.files[0]; if (!file) return;
-  const nameEl = document.getElementById('replyImageName');
   const previewEl = document.getElementById('replyImagePreview');
-  if (nameEl) nameEl.textContent = file.name;
+  const uploadArea = document.getElementById('codeUploadArea');
   const reader = new FileReader();
   reader.onload = e => {
-    if (previewEl) previewEl.innerHTML = `<img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid #e7e5e4;"/>`;
+    if (previewEl) previewEl.innerHTML = `
+      <div style="position:relative;display:inline-block;">
+        <img src="${e.target.result}" style="max-width:100%;max-height:200px;border-radius:10px;border:1.5px solid #99f6e4;"/>
+        <button onclick="clearReplyImage()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:99px;width:24px;height:24px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>`;
+    if (uploadArea) {
+      uploadArea.classList.add('has-file');
+      uploadArea.innerHTML = `<div class="upload-icon">✅</div><div class="upload-text" style="color:var(--teal-700);">${file.name}</div><div class="upload-hint">Click to change image</div>`;
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -572,3 +580,347 @@ function saveProfile() {
 }
 
 // Global page name for navbar
+
+// ============================================================
+// HAMBURGER MOBILE MENU
+// ============================================================
+function renderMobileNav() {
+  // Remove existing
+  document.querySelector('.hamburger')?.remove();
+  document.querySelector('.mobile-nav-overlay')?.remove();
+  document.querySelector('.mobile-nav-drawer')?.remove();
+
+  const navbar = document.getElementById('navbar');
+  if (!navbar) return;
+
+  const navInner = navbar.querySelector('.nav-inner');
+
+  // Hamburger button
+  const btn = document.createElement('button');
+  btn.className = 'hamburger';
+  btn.setAttribute('aria-label', 'Menu');
+  btn.innerHTML = '<span></span><span></span><span></span>';
+  navInner.appendChild(btn);
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'mobile-nav-overlay';
+  document.body.appendChild(overlay);
+
+  // Drawer
+  const drawer = document.createElement('div');
+  drawer.className = 'mobile-nav-drawer';
+  document.body.appendChild(drawer);
+
+  // Build nav links
+  const publicLinks = [
+    { l: 'Home', p: 'index' },
+    { l: 'Explore', p: 'explore' },
+    { l: 'Leaderboard', p: 'leaderboard' }
+  ];
+  const authLinks = [
+    { l: '🏠 Dashboard', p: 'dashboard' },
+    { l: '🔍 Explore', p: 'explore' },
+    { l: '✏️ Create Request', p: 'create' },
+    { l: '🏆 Leaderboard', p: 'leaderboard' },
+    { l: '🔔 Notifications', p: 'notification' },
+    { l: '🤖 AI Center', p: 'ai-center' },
+    { l: '👤 Profile', p: 'profile' }
+  ];
+  const links = isLoggedIn ? authLinks : publicLinks;
+  const active = window.currentPageName || '';
+
+  let html = links.map(({ l, p }) =>
+    `<a class="mobile-nav-link${active === p ? ' active' : ''}" href="${p}.html">${l}</a>`
+  ).join('');
+
+  html += '<div class="mobile-nav-divider"></div>';
+
+  if (!isLoggedIn) {
+    html += `<a class="mobile-nav-btn primary" href="login.html">Join the Platform</a>`;
+  } else {
+    const user = getCurrentUser();
+    html += `<div style="padding:12px 16px;font-size:14px;font-weight:700;color:var(--text-700);">Hi, ${user?.name?.split(' ')[0] || 'User'} 👋</div>`;
+    html += `<button class="mobile-nav-btn secondary" onclick="handleLogout();closeMobileNav();">Sign Out</button>`;
+  }
+
+  drawer.innerHTML = html;
+
+  // Toggle
+  function openMobileNav() {
+    btn.classList.add('open');
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  window.closeMobileNav = function() {
+    btn.classList.remove('open');
+    overlay.classList.remove('open');
+    drawer.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  btn.addEventListener('click', () => {
+    if (drawer.classList.contains('open')) closeMobileNav();
+    else openMobileNav();
+  });
+  overlay.addEventListener('click', closeMobileNav);
+}
+
+// ============================================================
+// USER PROFILE MODAL (click on any username to open)
+// ============================================================
+function ensureProfileModal() {
+  if (document.getElementById('userProfileModal')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'userProfileModal';
+  overlay.className = 'profile-modal-overlay';
+  overlay.innerHTML = `
+    <div class="profile-modal-box">
+      <button class="profile-modal-close" onclick="closeProfileModal()">×</button>
+      <div id="profileModalBody"></div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeProfileModal(); });
+  document.body.appendChild(overlay);
+}
+
+function closeProfileModal() {
+  const m = document.getElementById('userProfileModal');
+  if (m) m.classList.remove('active');
+}
+
+function openUserProfile(userId) {
+  ensureProfileModal();
+  const user = getUserById(userId);
+  if (!user) {
+    showToast('Profile not found', 'error');
+    return;
+  }
+  const BG_COLORS_P = ['#2a9d8f','#e76f51','#f4a261','#3b82f6','#8b5cf6','#ec4899'];
+  const idx = DB_USERS.findIndex(u => u.id === userId);
+  const bg = BG_COLORS_P[idx >= 0 ? idx % BG_COLORS_P.length : 0];
+  const badges = (user.badges || []);
+  const skills = (user.skills || []);
+  const interests = (user.interests || []);
+  const isMe = userId === currentUserId;
+
+  const roleLabel = {
+    'need-help': 'Help Seeker',
+    'can-help': 'Helper / Mentor',
+    'both': 'Helper & Seeker'
+  }[user.role] || user.role || 'Community Member';
+
+  const joinedFormatted = user.joinedDate
+    ? new Date(user.joinedDate).toLocaleDateString('en-PK', { year:'numeric', month:'short' })
+    : 'Unknown';
+
+  document.getElementById('profileModalBody').innerHTML = `
+    <div class="profile-modal-header">
+      <div class="profile-modal-avatar" style="background:${bg};">${getInitials(user.name)}</div>
+      <div>
+        <div class="profile-modal-name">${user.name}${isMe ? ' <span style="font-size:12px;color:var(--teal-700);">(you)</span>' : ''}</div>
+        <div class="profile-modal-role">${roleLabel} • ${user.location || 'Pakistan'}</div>
+        <div style="font-size:12px;color:var(--text-400);margin-top:2px;">Member since ${joinedFormatted}</div>
+      </div>
+    </div>
+
+    <div class="profile-modal-stat-row">
+      <div class="profile-modal-stat">
+        <div class="profile-modal-stat-num">${user.trustScore || 10}%</div>
+        <div class="profile-modal-stat-label">Trust</div>
+      </div>
+      <div class="profile-modal-stat">
+        <div class="profile-modal-stat-num">${user.contributions || 0}</div>
+        <div class="profile-modal-stat-label">Contribs</div>
+      </div>
+      <div class="profile-modal-stat">
+        <div class="profile-modal-stat-num">${badges.length}</div>
+        <div class="profile-modal-stat-label">Badges</div>
+      </div>
+    </div>
+
+    ${skills.length ? `
+    <div style="margin-bottom:1rem;">
+      <p class="profile-modal-section-title">Skills</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${skills.map(s => `<span class="skill-pill">${s}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${interests.length ? `
+    <div style="margin-bottom:1rem;">
+      <p class="profile-modal-section-title">Interests</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${interests.map(i => `<span class="tag">${i}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${badges.length ? `
+    <div style="margin-bottom:1rem;">
+      <p class="profile-modal-section-title">Badges</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${badges.map(b => `<span class="badge ${BADGE_COLORS[b]||'badge-stone'}">${b}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${isMe ? `
+    <a href="profile.html" class="btn-primary" style="display:block;text-align:center;margin-top:0.5rem;">Edit My Profile</a>
+    ` : `
+    <a href="messages.html" class="btn-primary" style="display:block;text-align:center;margin-top:0.5rem;">💬 Send Message</a>
+    `}
+  `;
+
+  document.getElementById('userProfileModal').classList.add('active');
+}
+
+// ============================================================
+// OVERRIDE renderNavbar to also call renderMobileNav
+// ============================================================
+const _origRenderNavbar = renderNavbar;
+window.renderNavbar = function(activePage) {
+  _origRenderNavbar(activePage);
+  renderMobileNav();
+};
+
+// ============================================================
+// OVERRIDE feedCard to make author name clickable
+// ============================================================
+const _origFeedCard = feedCard;
+window.feedCard = function(req) {
+  const catClass = CATEGORY_BADGE[req.category] || 'badge-stone';
+  const urgClass = URGENCY_BADGE[req.urgency] || 'badge-stone';
+  const statClass = STATUS_BADGE[req.status] || 'badge-stone';
+  const helperCount = (req.helpers || []).length;
+  const replyCount = req.replyCount || 0;
+  const creatorId = req.createdBy || '';
+  return `<div class="glass-hover feed-card">
+    <div class="flex gap-2 flex-wrap">
+      <span class="badge ${catClass}">${req.category}</span>
+      <span class="badge ${urgClass}">${req.urgency}</span>
+      <span class="badge ${statClass}">${STATUS_LABEL[req.status]}</span>
+    </div>
+    <h3>${req.title}</h3>
+    <p class="feed-desc">${req.description}</p>
+    <div class="flex gap-2 flex-wrap">${(req.tags||[]).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    <div class="feed-footer">
+      <div>
+        <p class="feed-author user-clickable" onclick="event.stopPropagation();openUserProfile('${creatorId}')" style="color:var(--teal-700);">${req.creatorName || 'Community Member'}</p>
+        <p class="feed-meta">${req.location || ''} • ${helperCount} helper${helperCount !== 1 ? 's' : ''} • ${timeAgo(req.createdAt)}</p>
+      </div>
+      <button class="btn-secondary" style="font-size:13px;padding:7px 14px;" onclick="openRequestModal('${req.id}')">Open →</button>
+    </div>
+  </div>`;
+};
+
+// Make creator name in modal clickable too
+const _origRenderModalContent = renderModalContent;
+window.renderModalContent = function(req) {
+  _origRenderModalContent(req);
+  // Patch "POSTED BY" section to make name clickable
+  const modalBody = document.getElementById('modalBody');
+  if (!modalBody) return;
+  const nameEls = modalBody.querySelectorAll('[data-creator-id]');
+  // Already handled if data attr present; otherwise find by structure
+  const creator = getUserById(req.createdBy) || { name: req.creatorName || 'Unknown', id: req.createdBy };
+  // Find the name p in POSTED BY section and make it clickable
+  const allPs = modalBody.querySelectorAll('p');
+  allPs.forEach(p => {
+    if (p.textContent === creator.name && !p.dataset.patched) {
+      p.dataset.patched = '1';
+      p.classList.add('user-clickable');
+      p.style.color = 'var(--teal-700)';
+      p.style.cursor = 'pointer';
+      p.onclick = () => openUserProfile(req.createdBy);
+    }
+  });
+};
+
+
+function clearReplyImage() {
+  const input = document.getElementById('replyImage');
+  const preview = document.getElementById('replyImagePreview');
+  const uploadArea = document.getElementById('codeUploadArea');
+  if (input) input.value = '';
+  if (preview) preview.innerHTML = '';
+  if (uploadArea) {
+    uploadArea.classList.remove('has-file');
+    uploadArea.innerHTML = `<div class="upload-icon">📸</div><div class="upload-text">Attach Code Screenshot</div><div class="upload-hint">Click to upload or drag an image of your error/code</div>`;
+  }
+}
+
+// Drag and drop support for code screenshot upload
+document.addEventListener('dragover', e => {
+  const area = document.getElementById('codeUploadArea');
+  if (area) { e.preventDefault(); area.style.borderColor = 'var(--teal-500)'; }
+});
+document.addEventListener('drop', e => {
+  const area = document.getElementById('codeUploadArea');
+  const input = document.getElementById('replyImage');
+  if (!area || !input) return;
+  e.preventDefault();
+  const file = e.dataTransfer?.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    previewReplyImage(input);
+  }
+});
+
+
+// ============================================================
+// MESSAGES
+// ============================================================
+function renderMsgStream() {
+  const container = document.getElementById('msgStream');
+  if (!container) return;
+  const msgs = lsJSON('hh_messages') || [];
+  const myMsgs = msgs.filter(m => m.toId === currentUserId || m.fromId === currentUserId);
+  if (!myMsgs.length) {
+    container.innerHTML = `<div class="empty-state"><h3>No messages yet</h3><p>Send a message to a community member to start a conversation.</p></div>`;
+    return;
+  }
+  container.innerHTML = myMsgs.map(m => {
+    const isMe = m.fromId === currentUserId;
+    const otherUser = getUserById(isMe ? m.toId : m.fromId) || { name: isMe ? 'You → ' + (m.toName||'?') : (m.fromName||'Unknown') };
+    return `<div class="msg-card">
+      <div class="msg-header">
+        <span class="msg-name">${isMe ? 'You → ' + (m.toName||'?') : (m.fromName||'Unknown')}</span>
+        <span class="msg-time">${timeAgo(m.timestamp)}</span>
+      </div>
+      <p class="msg-text">${m.body}</p>
+    </div>`;
+  }).join('');
+}
+
+function toggleSendBtn() {
+  const btn = document.getElementById('sendBtn');
+  const body = document.getElementById('msgBody');
+  if (btn && body) btn.disabled = !body.value.trim();
+}
+
+function sendMessage() {
+  const toId = document.getElementById('msgTo')?.value;
+  const body = document.getElementById('msgBody')?.value.trim();
+  if (!toId || !body) return;
+  const user = getCurrentUser();
+  const toUser = getUserById(toId);
+  const msgs = lsJSON('hh_messages') || [];
+  msgs.unshift({
+    id: 'm_' + Date.now(),
+    fromId: currentUserId,
+    fromName: user?.name || 'You',
+    toId,
+    toName: toUser?.name || '?',
+    body,
+    timestamp: new Date().toISOString()
+  });
+  lsSetJSON('hh_messages', msgs);
+  document.getElementById('msgBody').value = '';
+  toggleSendBtn();
+  notifications.unshift({ id: 'n_' + Date.now(), type: 'match', title: `Message sent to ${toUser?.name||'?'}`, timestamp: new Date().toISOString(), read: false });
+  lsSetJSON('hh_notifications', notifications);
+  showToast('Message sent!', 'success');
+  renderMsgStream();
+}
+

@@ -60,12 +60,12 @@
 currentPageName='dashboard';
 if(!requireAuth()){}else{
 renderNavbar('dashboard');
-function renderPage(){
+async function renderPage(){
   const user=getCurrentUser();if(!user)return;
-  const reqs=getAllRequests();
+  const reqs=await fsGetAll('requests');
   document.getElementById('dashWelcome').textContent=`Welcome back, ${user.name}.`;
   const myReqs=reqs.filter(r=>r.createdBy===currentUserId);
-  const helpingOn=reqs.filter(r=>r.helpers.includes(currentUserId));
+  const helpingOn=reqs.filter(r=>(r.helpers||[]).includes(currentUserId));
   document.getElementById('dashStats').innerHTML=[
     statCard('MY REQUESTS',myReqs.length,'Requests you posted'),
     statCard('HELPING ON',helpingOn.length,'Requests you offered to help'),
